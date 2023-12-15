@@ -66,7 +66,7 @@ class Function:
         self.outputs = [weakref.ref(output) for output in outputs] # to prevent recurrent reference between func and outputs (by func.outputs, var.creator)
         return outputs if len(outputs) > 1 else outputs[0]
     
-    def foward(self, xs):
+    def forward(self, xs):
         raise NotImplementedError()
     
     def backward(self, gys):

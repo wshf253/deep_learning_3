@@ -117,7 +117,7 @@ class Function:
 
         return outputs if len(outputs) > 1 else outputs[0]
     
-    def foward(self, xs):
+    def forward(self, xs):
         raise NotImplementedError()
     
     def backward(self, gys):
