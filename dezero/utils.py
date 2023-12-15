@@ -62,7 +62,7 @@ def plot_dot_graph(output, verbose=True, to_file='graph.png'):
     # save dot data to file
     tmp_dir = os.path.join('../', '.dezero')
     # tmp_dir = os.path.join(os.path.expanduser('~'), '.dezero') -> cause error because user file name is "Seong Jun Jung", it has blank
-    # expanduser -> change ~ into absolute path
+    # expanduser('~') -> change ~ into absolute path
     if not os.path.exists(tmp_dir): # if ~/.dezero does not exists
         os.mkdir(tmp_dir)
     graph_path = os.path.join(tmp_dir, 'tmp_graph.dot')
