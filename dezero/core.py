@@ -128,6 +128,11 @@ class Variable:
     
     def sum(self, axis=None, keepdims=False):
         return dezero.funcions.sum(self, axis, keepdims)
+    
+
+class Parameter(Variable):
+    pass
+
 
 def as_variable(obj):
     if isinstance(obj, Variable):
@@ -138,6 +143,7 @@ def as_array(x):
     if np.isscalar(x):
         return np.array(x)
     return x
+
 
 class Function:
     def __call__(self, *inputs):
@@ -185,6 +191,7 @@ def add(x0, x1):
     x1 = as_array(x1)
     return Add()(x0, x1)
 
+
 class Mul(Function):
     def forward(self, x0, x1):
         y = x0 * x1
@@ -205,6 +212,7 @@ def mul(x0, x1):
     x1 = as_array(x1)
     return Mul()(x0, x1)
 
+
 class Neg(Function):
     def forward(self, x):
         return -x
@@ -214,6 +222,7 @@ class Neg(Function):
 
 def neg(x):
     return Neg()(x)
+
 
 class Sub(Function):
     def forward(self, x0, x1):
@@ -238,6 +247,7 @@ def rsub(x0, x1):
     x1 = as_array(x1)
     return Sub()(x1, x0)
 
+
 class Div(Function):
     def forward(self, x0, x1):
         y = x0 / x1
@@ -261,6 +271,7 @@ def rdiv(x0, x1):
     x1 = as_array(x1)
     return Div()(x1, x0)
 
+
 class Pow(Function):
     def __init__(self, c):
         self.c = c
@@ -277,6 +288,7 @@ class Pow(Function):
 
 def pow(x, c):
     return Pow(c)(x)
+
 
 def setup_varibale():
     Variable.__add__ = add
