@@ -2,9 +2,11 @@ if '__file__' in globals():
     import os, sys
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from dezero.core import Parameter
+from dezero import cuda
 import weakref
 import numpy as np
 import dezero.functions as F
+import os
 
 
 class Layer:
@@ -40,6 +42,48 @@ class Layer:
         for param in self.params():
             param.clear_grad()
 
+    def to_cpu(self):
+        for param in self.params():
+            # param - Variable
+            param.to_cpu()
+    
+    def to_gpu(self):
+        for param in self.params():
+            param.to_gpu()
+    
+    def _flatten_params(self, params_dict, parent_key=''):
+        for name in self._params:
+            obj = self.__dict__[name]
+            key = parent_key + '/' + name if parent_key else name
+
+            if isinstance(obj, Layer):
+                obj._flatten_params(params_dict, key) # not self._flatten it will cause recurrsion depth exceeded error, obj - Layer -> obj._f0latten
+            else:
+                params_dict[key] = obj
+    
+    def save_weights(self, path):
+        self.to_cpu()
+        # save as numpy ndarray
+
+        params_dict = {}
+        self._flatten_params(params_dict)
+        array_dict = {key: param.data for key, param in params_dict.items() if param is not None}
+
+        try:
+            np.savez_compressed(path, **array_dict)
+        except (Exception, KeyboardInterrupt) as e:
+            if os.path.exists(path):
+                os.remove(path)
+            raise
+    
+    def load_weights(self, path):
+        npz = np.load(path)
+        params_dict = {}
+        self._flatten_params(params_dict)
+        for key, param in params_dict.items():
+            param.data = npz[key]
+
+        
 '''
 # test
 from dezero.core import Variable
@@ -76,16 +120,17 @@ class Linear(Layer):
         else:
             self.b = Parameter(np.zeros(out_size, dtype=dtype), name='b')
     
-    def _init_W(self):
+    def _init_W(self, xp=np):
         I, O = self.in_size, self.out_size
-        W_data = np.random.randn(I, O).astype(self.dtype) * np.sqrt(1 / I)
+        W_data = xp.random.randn(I, O).astype(self.dtype) * np.sqrt(1 / I)
         self.W.data = W_data
     
     def forward(self, x):
         # init W when data flows
         if self.W.data is None:
             self.in_size = x.shape[1] # x is 2d matrix
-            self._init_W()
+            xp = cuda.get_array_module(x)
+            self._init_W(xp)
         
         y = F.linear(x, self.W, self.b)
         return y
