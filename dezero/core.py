@@ -79,6 +79,9 @@ class Variable:
         self.creator = func
         self.generation = func.generation + 1
     
+    def unchain(self):
+        self.creator = None
+
     def clear_grad(self):
         self.grad = None
 
@@ -122,6 +125,16 @@ class Variable:
                 for y in f.outputs:
                     y().grad = None
     
+    def unchain_backward(self):
+        if self.creator is not None:
+            funcs = [self.creator]
+            while funcs:
+                f = funcs.pop()
+                for x in f.inputs:
+                    if x.creator is not None:
+                        funcs.append(x.creator)
+                        x.unchain()
+
     def reshape(self, *shape):
         if len(shape) == 1 and isinstance(shape[0], (tuple, list)):
             # ex) x.reshape((2,3)) -> shape = [(2, 3)] // x.reshape(2,3) -> shape = [2, 3]
